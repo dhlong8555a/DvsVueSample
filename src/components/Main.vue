@@ -4,9 +4,9 @@
      <el-row class="container">
        <el-col :span="4" class="menu">
          <el-menu default-active="1">
-          <el-menu-item index="1">Project</el-menu-item>
-          <el-menu-item index="2">Pipeline</el-menu-item>
-          <el-menu-item index="3">Report</el-menu-item>
+          <el-menu-item index="1"><span><i class="iconfont icon-project"></i>  Project</span></el-menu-item>
+          <el-menu-item index="2"><span><i class="iconfont icon-pipeline"></i>  Pipeline</span></el-menu-item>
+          <el-menu-item index="3"><span><i class="iconfont icon-report"></i>  Report</span></el-menu-item>
         </el-menu>
        </el-col>
        <el-col :span="20" class="content">Content</el-col>
@@ -21,33 +21,37 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+@import url("//at.alicdn.com/t/font_5mecv1h38sx4unmi.css");
+
 .wrapper {
-  position: relative;
-  height: 100%;
+  $vp-hight:100vh;
+  $wrapper-hight:$vp-hight;
+  $header-hight:$wrapper-hight*0.1;
+  $container-hight:$wrapper-hight*0.9;
+  display:flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: $vp-hight;
+
   header {
-    height: 80px;
-    position: absolute;
-    width: 100%;
-    top: 0;
-    left: 0;
+    flex:0,0,$header-hight;
+    height: $header-hight;
     padding: 0 20px;
-    z-index: 1;
-    box-sizing: border-box;
+    background-color: rgb(32, 160, 255);
   }
 
   .container{
-    height: 100%;
-    padding-top: 80px;
-
+    flex: 1,0,auto;
+    height: $container-hight;
     .menu {
       height: 100%;
       .el-menu {
         height: 100%;
       }
-    }
-
-    .content {
-      padding: 25px;
+    }   
+    .content{
+      height: 100%;
     }
   }
 }
