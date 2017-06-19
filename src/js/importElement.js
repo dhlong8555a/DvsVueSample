@@ -3,7 +3,11 @@ import {
     Row,
     Col,
     Menu,
-    MenuItem
+    MenuItem,
+    Select,
+    Dropdown,
+    DropdownMenu,
+    DropdownItem
 } from 'element-ui'
 
 import lang from 'element-ui/lib/locale/lang/en'
@@ -17,6 +21,10 @@ function importElement (Vue) {
   Vue.use(Col)
   Vue.use(Menu)
   Vue.use(MenuItem)
+  Vue.use(Select)
+  Vue.use(Dropdown)
+  Vue.use(DropdownMenu)
+  Vue.use(DropdownItem)
 }
 
 export default importElement
