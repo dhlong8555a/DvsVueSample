@@ -7,7 +7,14 @@ import {
     Select,
     Dropdown,
     DropdownMenu,
-    DropdownItem
+    DropdownItem,
+    Table,
+    TableColumn,
+    Pagination,
+    Dialog,
+    Form,
+    FormItem,
+    Input
 } from 'element-ui'
 
 import lang from 'element-ui/lib/locale/lang/en'
@@ -25,6 +32,13 @@ function importElement (Vue) {
   Vue.use(Dropdown)
   Vue.use(DropdownMenu)
   Vue.use(DropdownItem)
+  Vue.use(Table)
+  Vue.use(TableColumn)
+  Vue.use(Pagination)
+  Vue.use(Dialog)
+  Vue.use(Form)
+  Vue.use(FormItem)
+  Vue.use(Input)
 }
 
 export default importElement

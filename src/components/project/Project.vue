@@ -1,0 +1,205 @@
+<template>
+<div class="prj_container" ref="prj_container">
+  <el-row class="prj_toolbar" type="flex" align="bottom">
+    <el-col :span="8" class="toolbar_oprt">
+      <el-button size="small" @click="prjAdd"><i class="el-icon-plus"></i> Add</el-button>
+    </el-col>
+  </el-row>
+  <el-table class="prj_content_table"
+    tooltip-effect="dark"
+    stripe
+    height = "300"
+    :data="projectTable"
+    :default-sort = "{prop: 'lastUpdated', order: 'descending'}">
+    <el-table-column
+      type="selection"
+      min-width="40">
+    </el-table-column> 
+    <el-table-column
+      prop="name"
+      label="Name"
+      sortable
+      min-width="80">
+    </el-table-column> 
+    <el-table-column
+      prop="pipelineNum"
+      label="PipelineNum"
+      min-width="80">
+    </el-table-column> 
+    <el-table-column
+      prop="desc"
+      label="Description"
+      min-width="160"
+      show-overflow-tooltip>
+    </el-table-column> 
+    <el-table-column
+      prop="lastUpdated"
+      label="LastUpdated"
+      sortable
+      min-width="120">
+    </el-table-column> 
+    <el-table-column
+      label="Operate"
+      min-width="60">
+      <template scope="scope">
+        <el-button @click="prjEdit(scope.row)" type="text" size="small" class="el-icon-edit"></el-button>
+        <el-button @click="prjDelete(scope.$index)" type="text" size="small" class="el-icon-minus"></el-button>
+      </template>
+    </el-table-column> 
+  </el-table>
+  <el-pagination class="prj_pages"
+    @current-change="handleCurrentChange"
+    :current-page.sync="currentPage"
+    :page-size="papeSize"
+    layout="total, prev, pager, next"
+    :total="prjTotalSize">
+  </el-pagination>
+  <dvs-prj-editer 
+    :isShow="editPrjDlgShow" 
+    oprtType="Add" 
+    :prjInfo="editPrjInfo"
+    @editOk="prjEditOk"
+    @editCancel="prjEditCancel">
+  </dvs-prj-editer>
+  </div>
+  </el-dialog>
+</div>
+</template>
+
+<script>
+import dvsPrjEditer from './PrjEditer.vue'
+import { mapGetters, mapActions } from 'vuex'
+
+export default {
+  name: 'dvs-project',
+  components: {dvsPrjEditer},
+  data () {
+    return {
+      // tmpProjectTable: [
+      // ],
+      curPrjIndex: 0,
+      projectTable: [],
+      activeProject: [],
+      currentPage: 0,
+      papeSize: 15,
+      editPrjDlgShow: false,
+      editPrjOprt: '',
+      editPrjInfo: {
+        name: '',
+        desc: ''
+      },
+      editPrj: null
+    }
+  },
+  mounted () {
+    if (this.prjTotalSize > 0) {
+      this.currentPage = 1
+    }
+  },
+  computed: {
+    prjTotalSize () {
+      return this.allPrjs.length
+    },
+    ...mapGetters({
+      allPrjs: 'allPrjs'
+    })
+  },
+  methods: {
+    prjAdd () {
+      this.editPrjOprt = 'Add'
+      this.editPrjDlgShow = true
+    },
+    prjEdit (itemData) {
+      this.editPrj = itemData
+      this.editPrjInfo.name = itemData.name
+      this.editPrjInfo.desc = itemData.desc
+      this.editPrjOprt = 'Edit'
+      this.editPrjDlgShow = true
+    },
+    prjEditOk () {
+      let curDate = this.$moment().format('YYYY-MM-DD HH:mm:ss')
+      if (this.editPrjInfo.name.length !== 0) {
+        if (this.editPrjOprt === 'Add') {
+          let neweditPrj = {
+            name: this.editPrjInfo.name,
+            desc: this.editPrjInfo.desc.length > 0 ? this.editPrjInfo.desc : 'N/A',
+            lastUpdated: curDate,
+            pipelineNum: 0,
+            index: this.curPrjIndex++
+          }
+          this.addPrj(neweditPrj)
+        } else if (this.editPrj) {
+          this.editPrj.name = this.editPrjInfo.name
+          this.editPrj.desc = this.editPrjInfo.desc.length > 0 ? this.editPrjInfo.desc : 'N/A'
+          this.editPrj.lastUpdated = curDate
+          this.editPrj = null
+        }
+        this.handleCurrentChange(this.currentPage)
+      }
+      this.editPrjInfo.name = ''
+      this.editPrjInfo.desc = ''
+      this.editPrjDlgShow = false
+    },
+    prjEditCancel () {
+      this.editPrjInfo.name = ''
+      this.editPrjInfo.desc = ''
+      this.editPrjDlgShow = false
+    },
+    prjDelete (index) {
+      let delIndex = this.papeSize * (this.currentPage - 1) + index
+      this.tmpProjectTable.splice(delIndex, 1)
+      if (index === 0) this.currentPage = this.currentPage - 1
+      this.handleCurrentChange(this.currentPage)
+    },
+    handleCurrentChange (val) {
+      let startIndex = this.papeSize * (val - 1)
+      let endIndex = startIndex + this.papeSize
+      this.projectTable = this.allPrjs.slice(startIndex, endIndex)
+    },
+    ...mapActions({
+      addPrj: 'addPrj'
+    })
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+
+@import "../../style/iconfont.scss";
+
+.prj_container {
+  $toolbarH:45px;
+  $pagesH:40px;
+  padding: 0px 5px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  .prj_toolbar{
+    flex-shrink: 0;
+    background-color: #eef1f6;
+    height: $toolbarH;
+    margin-top: 5px;
+    color: #48576a;
+    .toolbar_oprt{
+      height: 100%;
+      padding-left: 20px;
+      padding-top: 4px;
+      font-size: 1.4em;
+    }
+  }
+
+  .prj_content_table{
+    flex-grow: 1;
+    margin-top: 5px;
+    width: 100%;
+  }
+
+  .prj_pages{
+    flex-shrink: 0;
+    height: $pagesH;
+    text-align: center;
+    margin-top: 10px;
+  }
+}
+
+</style>

@@ -23,7 +23,7 @@
          </el-col>
          <el-col :span="4" class="user">
            <el-dropdown class="dropdown" @command="handleUserCmd">
-              <i class="iconfont icon-user"></i> 
+              <i class= "iconfont icon-user"></i> 
               <span class="el-dropdown-link">
                 <i class="el-icon-caret-bottom el-icon--right"></i>
               </span>
@@ -41,16 +41,18 @@
          </el-col>
        </el-row>
     </header>
-     <el-row class="container">
-       <el-col :span="4" class="menu">
-         <el-menu default-active="1">
-          <el-menu-item index="1"><i class="iconfont icon-project"></i> Project</el-menu-item>
-          <el-menu-item index="2"><i class="iconfont icon-pipeline"></i> Pipeline</el-menu-item>
-          <el-menu-item index="3"><i class="iconfont icon-report"></i> Report</el-menu-item>
+    <el-row class="container">
+      <el-col :span="4" class="menu">
+        <el-menu :router='true' default-active="project">
+          <el-menu-item index="project"><i class="iconfont icon-project"></i> Project</el-menu-item>
+          <el-menu-item index="pipeline"><i class="iconfont icon-pipeline"></i> Pipeline</el-menu-item>
+          <el-menu-item index="report"><i class="iconfont icon-report"></i> Report</el-menu-item>
         </el-menu>
-       </el-col>
-       <el-col :span="20" class="content"></el-col>
-     </el-row>
+      </el-col>
+      <el-col :span="20" class="content">
+        <router-view></router-view>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -71,6 +73,9 @@ export default {
     handlePrjCmd (command) {
       console.log(command)
       this.curProject = command
+    },
+    handleUserCmd (command) {
+
     }
   }
 }
@@ -78,7 +83,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import url("//at.alicdn.com/t/font_qvarmr633p2gwrk9.css");
+@import "../style/iconfont.scss";
 
 .wrapper {
   $vp-hight:100vh;
@@ -88,6 +93,8 @@ export default {
   display:flex;
   flex-direction: column;
   height: $vp-hight;
+  min-width: 1000px;
+  min-height: 400px;
 
   header {
     flex:0,0,$header-hight;

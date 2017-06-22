@@ -3,8 +3,11 @@
 import Vue from 'vue'
 import router from './router'
 import importElement from '@/js/importElement.js'
+import moment from 'vue-moment'
+import store from './store'
 
 Vue.config.productionTip = false
+Vue.use(moment)
 
 importElement(Vue)
 
@@ -12,5 +15,6 @@ importElement(Vue)
 new Vue({
   el: '#app',
   router,
+  store,
   template: '<router-view></router-view>'
 })
