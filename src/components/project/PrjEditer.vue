@@ -1,6 +1,11 @@
 <template>
 <el-dialog size="small" :title="title" :visible.sync="isShow" :show-close="false">
     <el-form label-position="left" label-width="80px">
+      <el-form-item label="Active">
+        <el-checkbox 
+          v-model="prjInfo.active">
+        </el-checkbox>
+      </el-form-item>
       <el-form-item label="Name">
         <el-input 
           v-model="prjInfo.name"
@@ -41,6 +46,7 @@ export default {
       type: Object,
       required: false,
       default: {
+        active: true,
         name: '',
         desc: ''
       }

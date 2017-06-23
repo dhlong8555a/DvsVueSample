@@ -23,7 +23,11 @@ const mutations = {
     })
   },
   [types.DELETE_PRJ] (state, prj) {
-    state.tmpPrjs.splice(prj)
+    let index = state.tmpPrjs.findIndex(curPrj => {
+      return curPrj.index === prj.index
+    })
+    console.log('index:' + index)
+    if (index >= 0) state.tmpPrjs.splice(index, 1)
   }
 }
 

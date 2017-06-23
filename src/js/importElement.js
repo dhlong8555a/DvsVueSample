@@ -14,7 +14,8 @@ import {
     Dialog,
     Form,
     FormItem,
-    Input
+    Input,
+    Checkbox
 } from 'element-ui'
 
 import lang from 'element-ui/lib/locale/lang/en'
@@ -39,6 +40,7 @@ function importElement (Vue) {
   Vue.use(Form)
   Vue.use(FormItem)
   Vue.use(Input)
+  Vue.use(Checkbox)
 }
 
 export default importElement
