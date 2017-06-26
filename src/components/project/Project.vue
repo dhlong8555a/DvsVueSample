@@ -13,8 +13,11 @@
     :data="projectTable"
     :default-sort = "{prop: 'lastUpdated', order: 'descending'}">
     <el-table-column
-      type="selection"
+      :render-header="activeRender"
       min-width="40">
+      <template scope="scope">
+        <el-checkbox :value="scope.row.active" @input="prjCheckChange($event, scope.row)"></el-checkbox>
+      </template>
     </el-table-column> 
     <el-table-column
       prop="name"
@@ -62,8 +65,6 @@
     @editOk="prjEditOk"
     @editCancel="prjEditCancel">
   </dvs-prj-editer>
-  </div>
-  </el-dialog>
 </div>
 </template>
 
@@ -78,7 +79,6 @@ export default {
     return {
       curPrjIndex: 0,
       projectTable: [],
-      activeProject: [],
       currentPage: 0,
       papeSize: 15,
       editPrjDlgShow: false,
@@ -99,6 +99,19 @@ export default {
   computed: {
     prjTotalSize () {
       return this.allPrjs.length
+    },
+    allChecked () {
+      let allCh = true
+      if (this.projectTable.length > 0) {
+        for (let prj of this.projectTable) {
+          if (prj.active === false) {
+            allCh = false
+            break
+          }
+        }
+      } else allCh = false
+      console.log('aaa' + allCh)
+      return allCh
     },
     ...mapGetters({
       allPrjs: 'allPrjs'
@@ -140,7 +153,6 @@ export default {
         }
         this.handleCurrentChange(this.currentPage)
         this.$refs.prjContentTable.toggleRowSelection(neweditPrj, neweditPrj.active)
-        // setTimeout(this.test, 200)
       }
       this.editPrjInfo.name = ''
       this.editPrjInfo.desc = ''
@@ -162,11 +174,52 @@ export default {
       let endIndex = startIndex + this.papeSize
       this.projectTable = this.allPrjs.slice(startIndex, endIndex)
     },
+    prjCheckChange (val, prj) {
+      console.log(val + prj)
+      let chgPrj = {
+        active: val,
+        name: prj.name,
+        desc: prj.desc,
+        lastUpdated: prj.lastUpdated,
+        pipelineNum: prj.pipelineNum,
+        index: prj.index
+      }
+      this.updatePrj(chgPrj)
+    },
+    allCheckedToggle (val) {
+      console.log('bbb' + val)
+      for (let prj of this.projectTable) {
+        if (prj.active !== val) {
+          let chgPrj = {
+            active: val,
+            name: prj.name,
+            desc: prj.desc,
+            lastUpdated: prj.lastUpdated,
+            pipelineNum: prj.pipelineNum,
+            index: prj.index
+          }
+          this.updatePrj(chgPrj)
+        }
+      }
+    },
     ...mapActions({
       addPrj: 'addPrj',
       updatePrj: 'updatePrj',
       deletePrj: 'deletePrj'
     }),
+    activeRender (h, {column, index}) {
+      return h(
+        'el-checkbox',
+        {
+          attrs: {
+            value: this.allChecked
+          },
+          on: {
+            input: this.allCheckedToggle
+          }
+        }
+      )
+    },
     test () {
       let vals = this.projectTable
       let table = this.$refs.prjContentTable

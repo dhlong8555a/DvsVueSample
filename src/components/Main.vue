@@ -2,10 +2,10 @@
   <div class="wrapper">
      <header>
        <el-row class="header" type="flex" align="bottom">
-         <el-col :span="4" class="logo">
+         <el-col :span="3" class="logo">
             <span><i class="iconfont icon-devops"></i> DevOps</span>
          </el-col>
-         <el-col :span="16" class="workspace">
+         <el-col :span="18" class="workspace">
             <span>{{curWorkspace}}  </span>
             <el-dropdown class="dropdown" @command="handlePrjCmd">
               <span class="el-dropdown-link">{{curProject}}</span>
@@ -21,10 +21,10 @@
               </el-dropdown-menu>
             </el-dropdown>
          </el-col>
-         <el-col :span="4" class="user">
+         <el-col :span="3" class="user">
            <el-dropdown class="dropdown" @command="handleUserCmd">
-              <i class= "iconfont icon-user"></i> 
               <span class="el-dropdown-link">
+                <i class= "iconfont icon-user"></i> 
                 <i class="el-icon-caret-bottom el-icon--right"></i>
               </span>
               <el-dropdown-menu class="dropdown-menu" slot="dropdown">
@@ -42,14 +42,14 @@
        </el-row>
     </header>
     <el-row class="container">
-      <el-col :span="4" class="menu">
+      <el-col :span="3" class="menu">
         <el-menu :router='true' default-active="project">
           <el-menu-item index="project"><i class="iconfont icon-project"></i> Project</el-menu-item>
           <el-menu-item index="pipeline"><i class="iconfont icon-pipeline"></i> Pipeline</el-menu-item>
           <el-menu-item index="report"><i class="iconfont icon-report"></i> Report</el-menu-item>
         </el-menu>
       </el-col>
-      <el-col :span="20" class="content">
+      <el-col :span="21" class="content">
         <router-view></router-view>
       </el-col>
     </el-row>
