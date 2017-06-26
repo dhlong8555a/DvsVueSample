@@ -1,22 +1,30 @@
 import * as types from '../mutation-types'
 
 const state = {
-  prjKeyInfos: []
+  activePrjs: []
 }
 
 const getters = {
-  prjKeyInfos: state => { return state.prjKeyInfos }
+  activePrjs: state => {
+    let activePrjs = state.project.tmpPrjs.filter(prj => {
+      return prj.active
+    })
+    return activePrjs
+  }
 }
 
 const mutations = {
   [types.CHANGE_PRJS] (state, prjs) {
-    state.prjKeyInfos = prjs
+    state.activePrjs = prjs
   }
 }
 
 const actions = {
-  updatePrjs ({commit, getters}) {
-    commit(types.CHANGE_PRJS)
+  updatePrjs ({commit, state}) {
+    let activePrjs = state.project.tmpPrjs.filter(prj => {
+      return prj.active
+    })
+    commit(types.CHANGE_PRJS, activePrjs)
   }
 }
 

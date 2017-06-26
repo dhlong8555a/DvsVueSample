@@ -8,12 +8,12 @@
          <el-col :span="18" class="workspace">
             <span>{{curWorkspace}}  </span>
             <el-dropdown class="dropdown" @command="handlePrjCmd">
-              <span class="el-dropdown-link">{{curProject}}</span>
+              <span class="el-dropdown-link">{{curPrjName}}</span>
               <el-dropdown-menu class="dropdown-menu" slot="dropdown">
-                <el-dropdown-item class="dropdown-item" command="All">All</el-dropdown-item>
+                <el-dropdown-item class="dropdown-item" :command="defPrjName">{{defPrjName}}</el-dropdown-item>
                 <el-dropdown-item 
-                  class="dropdown-item" v-for="item in projectItems" 
-                  :key="item.name"
+                  class="dropdown-item" v-for="item in activePrjs" 
+                  :key="item"
                   :command="item.name"
                   divided>
                     {{item.name}}
@@ -57,22 +57,34 @@
 </template>
 
 <script>
+import {mapGetters} from 'vuex'
+
 export default {
   name: 'dvs-main',
   data () {
     return {
+      defPrjName: 'All',
       curWorkspace: 'EI-Workspace',
-      curProject: 'All',
-      projectItems: [
-        { name: 'RMM' },
-        { name: 'OTA' }
-      ]
+      curPrjName: 'All'
+    }
+  },
+  computed: {
+    ...mapGetters({
+      activePrjs: 'activePrjs'
+    })
+  },
+  watch: {
+    activePrjs () {
+      let findPrj = this.activePrjs.find((prj) => {
+        if (prj.name === this.curPrjName) return true
+      })
+      if (findPrj === undefined) this.curPrjName = 'All'
     }
   },
   methods: {
     handlePrjCmd (command) {
       console.log(command)
-      this.curProject = command
+      this.curPrjName = command
     },
     handleUserCmd (command) {
 

@@ -10,7 +10,7 @@
     tooltip-effect="dark"
     stripe
     height = "300"
-    :data="projectTable"
+    :data="curPrjs"
     :default-sort = "{prop: 'lastUpdated', order: 'descending'}">
     <el-table-column
       :render-header="activeRender"
@@ -52,7 +52,7 @@
     </el-table-column> 
   </el-table>
   <el-pagination class="prj_pages"
-    @current-change="handleCurrentChange"
+    @current-change="handleCurPageChange"
     :current-page.sync="currentPage"
     :page-size="papeSize"
     layout="total, prev, pager, next"
@@ -78,7 +78,6 @@ export default {
   data () {
     return {
       curPrjIndex: 0,
-      projectTable: [],
       currentPage: 0,
       papeSize: 15,
       editPrjDlgShow: false,
@@ -97,24 +96,10 @@ export default {
     }
   },
   computed: {
-    prjTotalSize () {
-      return this.allPrjs.length
-    },
-    allChecked () {
-      let allCh = true
-      if (this.projectTable.length > 0) {
-        for (let prj of this.projectTable) {
-          if (prj.active === false) {
-            allCh = false
-            break
-          }
-        }
-      } else allCh = false
-      console.log('aaa' + allCh)
-      return allCh
-    },
-    ...mapGetters({
-      allPrjs: 'allPrjs'
+    ...mapGetters('project', {
+      curPrjs: 'curPrjs',
+      prjTotalSize: 'prjTotalSize',
+      allPrjActive: 'allPrjActive'
     })
   },
   methods: {
@@ -151,8 +136,7 @@ export default {
           this.updatePrj(neweditPrj)
           this.editPrj = null
         }
-        this.handleCurrentChange(this.currentPage)
-        this.$refs.prjContentTable.toggleRowSelection(neweditPrj, neweditPrj.active)
+        this.handleCurPageChange(this.currentPage)
       }
       this.editPrjInfo.name = ''
       this.editPrjInfo.desc = ''
@@ -167,15 +151,16 @@ export default {
     prjDelete (itemData, index) {
       this.deletePrj(itemData)
       if (index === 0) this.currentPage = this.currentPage - 1
-      this.handleCurrentChange(this.currentPage)
+      this.handleCurPageChange(this.currentPage)
     },
-    handleCurrentChange (val) {
-      let startIndex = this.papeSize * (val - 1)
-      let endIndex = startIndex + this.papeSize
-      this.projectTable = this.allPrjs.slice(startIndex, endIndex)
+    handleCurPageChange (val) {
+      if (val > 0) {
+        let startIndex = this.papeSize * (val - 1)
+        let endIndex = startIndex + this.papeSize
+        this.getPrjs({startIndex, endIndex})
+      }
     },
     prjCheckChange (val, prj) {
-      console.log(val + prj)
       let chgPrj = {
         active: val,
         name: prj.name,
@@ -186,47 +171,28 @@ export default {
       }
       this.updatePrj(chgPrj)
     },
-    allCheckedToggle (val) {
-      console.log('bbb' + val)
-      for (let prj of this.projectTable) {
-        if (prj.active !== val) {
-          let chgPrj = {
-            active: val,
-            name: prj.name,
-            desc: prj.desc,
-            lastUpdated: prj.lastUpdated,
-            pipelineNum: prj.pipelineNum,
-            index: prj.index
-          }
-          this.updatePrj(chgPrj)
-        }
-      }
-    },
-    ...mapActions({
+    ...mapActions('project', {
+      getPrjs: 'getPrjs',
       addPrj: 'addPrj',
       updatePrj: 'updatePrj',
-      deletePrj: 'deletePrj'
+      deletePrj: 'deletePrj',
+      curPjrsActiveToggle: 'curPjrsActiveToggle'
     }),
     activeRender (h, {column, index}) {
       return h(
         'el-checkbox',
         {
           attrs: {
-            value: this.allChecked
+            value: this.allPrjActive
           },
           on: {
-            input: this.allCheckedToggle
+            input: this.curPjrsActiveToggle
           }
         }
       )
     },
     test () {
-      let vals = this.projectTable
-      let table = this.$refs.prjContentTable
-      for (let prj of vals) {
-        console.log(prj.active + prj.name)
-        table.toggleRowSelection(prj, prj.active)
-      }
+      console.log(this.curPrjs.length)
     }
   }
 }
