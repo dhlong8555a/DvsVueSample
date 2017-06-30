@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import global from './modules/global'
 import project from './modules/project'
-import createLogger from '../../node_modules/vuex/src/plugins/logger'
+// import createLogger from '../../node_modules/vuex/src/plugins/logger'
 
 Vue.use(Vuex)
 
@@ -16,6 +16,6 @@ export default new Vuex.Store({
   modules: {
     project
   },
-  strict: debug,
-  plugins: debug ? [createLogger()] : []
+  strict: debug
+  // plugins: debug ? [createLogger()] : []
 })

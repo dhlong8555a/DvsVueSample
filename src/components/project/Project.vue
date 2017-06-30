@@ -3,18 +3,16 @@
   <el-row class="prj_toolbar" type="flex" align="bottom">
     <el-col :span="8" class="toolbar_oprt">
       <el-button size="small" @click="prjAdd"><i class="el-icon-plus"></i> Add</el-button>
-      <el-button size="small" @click="test">Test</el-button>
     </el-col>
   </el-row>
   <el-table class="prj_content_table" ref="prjContentTable"
     tooltip-effect="dark"
     stripe
     height = "300"
-    :data="curPrjs"
-    :default-sort = "{prop: 'lastUpdated', order: 'descending'}">
+    :data="curPrjs">
     <el-table-column
       :render-header="activeRender"
-      min-width="40">
+      min-width="20">
       <template scope="scope">
         <el-checkbox :value="scope.row.active" @input="prjCheckChange($event, scope.row)"></el-checkbox>
       </template>
@@ -23,37 +21,42 @@
       prop="name"
       label="Name"
       sortable
-      min-width="80">
+      min-width="60"
+      show-overflow-tooltip>
     </el-table-column> 
     <el-table-column
       prop="pipelineNum"
       label="PipelineNum"
+      :formatter="pipelineNumFormat"
       min-width="80">
     </el-table-column> 
     <el-table-column
-      prop="desc"
+      prop="description"
       label="Description"
       min-width="160"
+      :formatter="descriptionFormat"
       show-overflow-tooltip>
     </el-table-column> 
     <el-table-column
-      prop="lastUpdated"
+      prop="updateTs"
       label="LastUpdated"
       sortable
-      min-width="120">
+      :formatter="updateTSFormat"
+      min-width="80">
     </el-table-column> 
     <el-table-column
       label="Operate"
-      min-width="60">
+      align="center"
+      min-width="40">
       <template scope="scope">
         <el-button @click="prjEdit(scope.row)" type="text" size="small" class="el-icon-edit"></el-button>
-        <el-button @click="prjDelete(scope.row, scope.$index)" type="text" size="small" class="el-icon-minus"></el-button>
+        <el-button v-if = "false" @click="prjDelete(scope.row, scope.$index)" type="text" size="small" class="el-icon-minus"></el-button>
       </template>
     </el-table-column> 
   </el-table>
   <el-pagination class="prj_pages"
     @current-change="handleCurPageChange"
-    :current-page.sync="currentPage"
+    :current-page.sync="curPageNum"
     :page-size="papeSize"
     layout="total, prev, pager, next"
     :total="prjTotalSize">
@@ -70,15 +73,19 @@
 
 <script>
 import dvsPrjEditer from './PrjEditer.vue'
-import { mapGetters, mapActions } from 'vuex'
+import {mapState, mapGetters, mapMutations, mapActions} from 'vuex'
+import { prjAPI } from '../../api/restfulAPI'
+import refreshMixin from '../../js/mixin/refresh'
 
 export default {
   name: 'dvs-project',
   components: {dvsPrjEditer},
+  mixins: [refreshMixin],
   data () {
     return {
-      curPrjIndex: 0,
-      currentPage: 0,
+      pageName: 'project',
+      refreshInterval: 2000,
+      curPageNum: 1,
       papeSize: 15,
       editPrjDlgShow: false,
       editPrjOprt: '',
@@ -90,19 +97,25 @@ export default {
       editPrj: null
     }
   },
-  mounted () {
-    if (this.prjTotalSize > 0) {
-      this.currentPage = 1
-    }
-  },
   computed: {
-    ...mapGetters('project', {
-      curPrjs: 'curPrjs',
-      prjTotalSize: 'prjTotalSize',
-      allPrjActive: 'allPrjActive'
-    })
+    ...mapState([
+      'curWsp'
+    ]),
+    ...mapState('project', [
+      'curPrjs',
+      'prjTotalSize'
+    ]),
+    ...mapGetters('project', [
+      'allPrjActive'
+    ])
   },
   methods: {
+    ...mapMutations([
+      'setCurMsg'
+    ]),
+    ...mapActions('project', [
+      'getPrjs'
+    ]),
     prjAdd () {
       this.editPrjOprt = 'Add'
       this.editPrjDlgShow = true
@@ -111,32 +124,25 @@ export default {
       this.editPrj = itemData
       this.editPrjInfo.active = itemData.active
       this.editPrjInfo.name = itemData.name
-      this.editPrjInfo.desc = itemData.desc
+      this.editPrjInfo.desc = itemData.description
       this.editPrjOprt = 'Edit'
       this.editPrjDlgShow = true
     },
     prjEditOk () {
       this.editPrjDlgShow = false
-      let curDate = this.$moment().format('YYYY-MM-DD HH:mm:ss')
       if (this.editPrjInfo.name.length !== 0) {
-        let neweditPrj = {
-          active: this.editPrjInfo.active,
-          name: this.editPrjInfo.name,
-          desc: this.editPrjInfo.desc.length > 0 ? this.editPrjInfo.desc : 'N/A',
-          lastUpdated: curDate,
-          pipelineNum: 0,
-          index: 0
-        }
         if (this.editPrjOprt === 'Add') {
-          neweditPrj.index = this.curPrjIndex++
-          this.addPrj(neweditPrj)
+          this.postPrj(this.editPrjInfo.name,
+            this.editPrjInfo.desc,
+            this.editPrjInfo.active)
         } else if (this.editPrj) {
-          neweditPrj.index = this.editPrj.index
-          neweditPrj.pipelineNum = this.editPrj.pipelineNum
-          this.updatePrj(neweditPrj)
+          this.putPrj(this.editPrj.id,
+            this.editPrjInfo.name,
+            this.editPrjInfo.desc,
+            this.editPrjInfo.active)
           this.editPrj = null
         }
-        this.handleCurPageChange(this.currentPage)
+        this.handleCurPageChange(this.curPageNum)
       }
       this.editPrjInfo.name = ''
       this.editPrjInfo.desc = ''
@@ -150,34 +156,64 @@ export default {
     },
     prjDelete (itemData, index) {
       this.deletePrj(itemData)
-      if (index === 0) this.currentPage = this.currentPage - 1
-      this.handleCurPageChange(this.currentPage)
+      if (index === 0) this.curPageNum = this.curPageNum - 1
+      this.handleCurPageChange(this.curPageNum)
     },
     handleCurPageChange (val) {
       if (val > 0) {
         let startIndex = this.papeSize * (val - 1)
-        let endIndex = startIndex + this.papeSize
-        this.getPrjs({startIndex, endIndex})
+        let count = this.papeSize
+        this.getPrjs({startIndex, count})
       }
     },
     prjCheckChange (val, prj) {
-      let chgPrj = {
-        active: val,
-        name: prj.name,
-        desc: prj.desc,
-        lastUpdated: prj.lastUpdated,
-        pipelineNum: prj.pipelineNum,
-        index: prj.index
-      }
-      this.updatePrj(chgPrj)
+      this.putPrj(prj.id, prj.name, prj.desc, val)
     },
-    ...mapActions('project', {
-      getPrjs: 'getPrjs',
-      addPrj: 'addPrj',
-      updatePrj: 'updatePrj',
-      deletePrj: 'deletePrj',
-      curPjrsActiveToggle: 'curPjrsActiveToggle'
-    }),
+    postPrj (name, desc, active) {
+      prjAPI.addPrj(this.curWsp.id, {name, desc, active}).then(data => {
+        let msg = {
+          message: `Add ${name} project success`,
+          type: 'success'
+        }
+        this.setCurMsg(msg)
+      }).catch(error => {
+        if (error.response.data.errorMsg != null && error.response.data.errorMsg.length > 0) {
+          let msg = {
+            message: `Add ${name} project failed, cause: ${error.response.data.errorMsg}`,
+            type: 'error'
+          }
+          this.setCurMsg(msg)
+        }
+        console.log(error.response.data)
+      })
+    },
+    putPrj (id, name, desc, active) {
+      prjAPI.updatePrj(this.curWsp.id, {id, name, desc, active}).then(data => {
+        console.log(data)
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    curPjrsActiveToggle (active) {
+      for (let prj of this.curPrjs) {
+        if (prj.active !== active) {
+          prjAPI.updatePrj(this.curWsp.id, {id: prj.id, name: prj.name, desc: prj.description, active})
+        }
+      }
+    },
+    updateTSFormat (row, column) {
+      let updateTs = this.$moment(row.updateTs).format('YYYY-MM-DD HH:mm:ss')
+      return updateTs
+    },
+    descriptionFormat (row, column) {
+      return row.description.length > 0 ? row.description : 'N/A'
+    },
+    pipelineNumFormat (row, colunm) {
+      return 0
+    },
+    refreshFun () {
+      this.handleCurPageChange(this.curPageNum)
+    },
     activeRender (h, {column, index}) {
       return h(
         'el-checkbox',
@@ -190,9 +226,6 @@ export default {
           }
         }
       )
-    },
-    test () {
-      console.log(this.curPrjs.length)
     }
   }
 }

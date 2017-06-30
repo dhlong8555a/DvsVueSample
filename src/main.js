@@ -5,9 +5,12 @@ import router from './router'
 import importElement from '@/js/importElement.js'
 import moment from 'vue-moment'
 import store from './store'
+import { sync } from 'vuex-router-sync'
 
 Vue.config.productionTip = false
 Vue.use(moment)
+
+sync(store, router)
 
 importElement(Vue)
 

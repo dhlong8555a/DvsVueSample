@@ -7,6 +7,22 @@ const prjRoutes = {
   component: Project
 }
 
+const pipelineRoutes = {
+  path: 'pipeline',
+  name: 'pipeline',
+  component: {
+    template: '<div>pipeline</div>'
+  }
+}
+
+const reportRoutes = {
+  path: 'report',
+  name: 'report',
+  component: {
+    template: '<div>report</div>'
+  }
+}
+
 const routes = [
   {
     path: '/',
@@ -14,7 +30,9 @@ const routes = [
     component: Main,
     redirect: { name: 'project' },
     children: [
-      prjRoutes
+      prjRoutes,
+      pipelineRoutes,
+      reportRoutes
     ]
   }
 ]

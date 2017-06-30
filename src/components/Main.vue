@@ -6,15 +6,15 @@
             <span><i class="iconfont icon-devops"></i> DevOps</span>
          </el-col>
          <el-col :span="18" class="workspace">
-            <span>{{curWorkspace}}  </span>
+            <span>{{curWsp.name}}  </span>
             <el-dropdown class="dropdown" @command="handlePrjCmd">
               <span class="el-dropdown-link">{{curPrjName}}</span>
               <el-dropdown-menu class="dropdown-menu" slot="dropdown">
-                <el-dropdown-item class="dropdown-item" :command="defPrjName">{{defPrjName}}</el-dropdown-item>
+                <el-dropdown-item class="dropdown-item" command="0">{{defPrjName}}</el-dropdown-item>
                 <el-dropdown-item 
                   class="dropdown-item" v-for="item in activePrjs" 
                   :key="item"
-                  :command="item.name"
+                  :command="item.id.toString()"
                   divided>
                     {{item.name}}
                 </el-dropdown-item>
@@ -43,51 +43,89 @@
     </header>
     <el-row class="container">
       <el-col :span="3" class="menu">
-        <el-menu :router='true' default-active="project">
+        <el-menu :router='true' :default-active="curPage">
           <el-menu-item index="project"><i class="iconfont icon-project"></i> Project</el-menu-item>
           <el-menu-item index="pipeline"><i class="iconfont icon-pipeline"></i> Pipeline</el-menu-item>
           <el-menu-item index="report"><i class="iconfont icon-report"></i> Report</el-menu-item>
         </el-menu>
       </el-col>
       <el-col :span="21" class="content">
-        <router-view></router-view>
+        <keep-alive>
+          <router-view></router-view>
+        </keep-alive>
       </el-col>
     </el-row>
   </div>
 </template>
 
 <script>
-import {mapGetters} from 'vuex'
+import {mapState, mapGetters, mapMutations, mapActions} from 'vuex'
+import RepeatRunner from 'repeat-runner'
+import { Message } from 'element-ui'
 
 export default {
   name: 'dvs-main',
   data () {
     return {
       defPrjName: 'All',
-      curWorkspace: 'EI-Workspace',
-      curPrjName: 'All'
+      refreshRunner: null,
+      refreshInterval: 2000
+    }
+  },
+  created () {
+    this.refreshRunner = new RepeatRunner(this.refreshFun, this.refreshInterval)
+  },
+  mounted () {
+    if (!this.refreshRunner.isRunning) this.refreshRunner.start()
+  },
+  beforeDestroy () {
+    this.refreshRunner.stop()
+  },
+  watch: {
+    curMessage () {
+      if (this.curMessage.message.length > 0) {
+        console.log(this.curMessage.message.length)
+        let msg = {
+          message: this.curMessage.message,
+          type: this.curMessage.type
+        }
+        Message(msg)
+      }
     }
   },
   computed: {
-    ...mapGetters({
-      activePrjs: 'activePrjs'
-    })
-  },
-  watch: {
-    activePrjs () {
-      let findPrj = this.activePrjs.find((prj) => {
-        if (prj.name === this.curPrjName) return true
-      })
-      if (findPrj === undefined) this.curPrjName = 'All'
+    ...mapState([
+      'curWsp',
+      'activePrjs',
+      'curMessage'
+    ]),
+    ...mapGetters([
+      'curActivePrj',
+      'curPage'
+    ]),
+    curPrjName () {
+      if (this.curActivePrj == null) {
+        this.setCurActivePrj(0)
+        return this.defPrjName
+      } else return this.curActivePrj.name
     }
   },
   methods: {
+    ...mapMutations([
+      'setCurActivePrj'
+    ]),
+    ...mapActions([
+      'updateActivePrjs'
+    ]),
     handlePrjCmd (command) {
-      console.log(command)
-      this.curPrjName = command
+      let id = command
+      this.setCurActivePrj(id)
     },
     handleUserCmd (command) {
 
+    },
+    refreshFun () {
+      this.updateActivePrjs()
     }
   }
 }
@@ -130,6 +168,11 @@ export default {
     }  
     .dropdown{
       color: white;
+      .dropdown-menu-div{
+        height: 100px;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
     }
   }
 
