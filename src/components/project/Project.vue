@@ -206,7 +206,7 @@ export default {
       return updateTs
     },
     descriptionFormat (row, column) {
-      return row.description.length > 0 ? row.description : 'N/A'
+      return row.description !== null && row.description.length > 0 ? row.description : 'N/A'
     },
     pipelineNumFormat (row, colunm) {
       return 0
